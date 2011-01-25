@@ -44,3 +44,25 @@ Compiled JS function:
       return out.join("");
     }
 
+Caveats
+-------
+
+The compiler is not fully [mustache-spec](https://github.com/mustache/spec) compliant. All of the modules are supported except for the optional lambda section. This module requires a mustache parser to be present at runtime.
+
+Instead of lambdas being passed the raw text of a section, a closure is passed as the first argument. Simply call the function to render the section.
+
+    {{#cacheByUserId}}
+      Some expensive stuff.
+    {{/cacheByUserId}}
+
+    cacheByUserId: function(section) {
+      var key, value;
+      key = "user:#{id}";
+      if (value = cache[key]) {
+        return value;
+      } else {
+        value = section();
+        cache[key] = value;
+        return value;
+      }
+    }
