@@ -78,3 +78,10 @@ Pro Tip
 Use the [Google Closure Compiler](http://closure-compiler.appspot.com/). Its really good at inlining the template helper functions.
 
     window.hello=function(a){var b,c;b=[];c=[];c.push(a);b.push("Hello ");if((a=function(f){var d,e;for(d=c.length-1;d>=0;d-=1)if(e=c[d][f])return e}("planet"))&&a.constructor&&a.call&&a.apply)a=a();b.push((""+a).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"));return b.join("")};
+
+License
+-------
+
+Copyright (c) 2011 Joshua Peek.
+
+Released under the MIT license. See `LICENSE` for details.
