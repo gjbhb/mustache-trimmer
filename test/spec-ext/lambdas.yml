@@ -1,0 +1,60 @@
+tests:
+  - name: Interpolation
+    desc: A lambda's return value should be interpolated.
+    data:
+      lambda: !code
+        js:   'function() { return "world" }'
+    template: "Hello, {{lambda}}!"
+    expected: "Hello, world!"
+
+  - name: Interpolation - Expansion
+    desc: A lambda's return value should not be parsed.
+    data:
+      planet: "world"
+      lambda: !code
+        js:   'function() { return "{{planet}}" }'
+    template: "Hello, {{lambda}}!"
+    expected: "Hello, {{planet}}!"
+
+  - name: Escaping
+    desc: Lambda results should be appropriately escaped.
+    data:
+      lambda: !code
+        js:   'function() { return ">" }'
+    template: "<{{lambda}}{{{lambda}}}"
+    expected: "<&gt;>"
+
+  - name: Section
+    desc: Lambdas used for sections should receive the section block.
+    data:
+      x: 'foo'
+      lambda: !code
+        js:   'function(block) { return (block() == "foo" ? "yes" : "no") }'
+    template: "<{{#lambda}}{{x}}{{/lambda}}>"
+    expected: "<yes>"
+
+  - name: Section - Expansion
+    desc: Lambdas used for sections should not have their results parsed.
+    data:
+      planet: "Earth"
+      lambda: !code
+        js:   'function(block) { return block() + "{{planet}}" + block() }'
+    template: "<{{#lambda}}-{{/lambda}}>"
+    expected: "<-{{planet}}->"
+
+  - name: Section - Multiple Calls
+    desc: Lambdas used for sections should not simply cache the first response.
+    data:
+      lambda: !code
+        js:   'function(block) { return "__" + block() + "__" }'
+    template: '{{#lambda}}FILE{{/lambda}} != {{#lambda}}LINE{{/lambda}}'
+    expected: '__FILE__ != __LINE__'
+
+  - name: Inverted Section
+    desc: Lambdas used for inverted sections should be considered truthy.
+    data:
+      static: 'static'
+      lambda: !code
+        js:   'function(block) { return block() }'
+    template: "<{{^lambda}}{{static}}{{/lambda}}>"
+    expected: "<>"
