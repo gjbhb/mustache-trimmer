@@ -1,7 +1,7 @@
 Mustache Trimmer - Cleanly shaves your mustache into pure JS
 ================
 
-Mustache Trimmer is a Ruby library that compiles [Mustache](http://mustache.github.com/) templates into pure Javascript code.
+Mustache Trimmer is a Ruby library that compiles [Mustache](http://mustache.github.com/) templates into pure Javascript functions.
 
 Installation
 ------------
