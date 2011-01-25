@@ -3,6 +3,11 @@ Mustache Trimmer (aka Mustache JS compiler)
 
 Cleanly shaves your mustache into pure JS
 
+Install
+-------
+
+    gem install mustache-trimmer
+
 Usage
 -----
 
