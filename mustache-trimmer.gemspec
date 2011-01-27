@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name      = 'mustache-trimmer'
-  s.version   = '0.1.0'
-  s.date      = '2011-01-25'
+  s.version   = '0.1.1'
+  s.date      = '2011-01-26'
 
   s.homepage    = "https://github.com/josh/mustache-trimmer"
   s.summary     = "Mustache JS compiler"
