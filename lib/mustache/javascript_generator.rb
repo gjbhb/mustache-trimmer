@@ -163,7 +163,7 @@ class Mustache
         if (#{v} === true) {
           out.push(#{f}());
         } else if (isFunction(#{v})) {
-          out.push(#{v}(#{f}));
+          out.push(#{v}.call(stack[stack.length - 1], #{f}));
         } else if (isArray(#{v})) {
           for (#{i} = 0; #{i} < #{v}.length; #{i} += 1) {
             stack.push(#{v}[#{i}]);
@@ -229,7 +229,7 @@ class Mustache
       <<-JS.gsub(/^        /, indent)
         #{v} = fetch(#{name.inspect});
         if (isFunction(#{v})) {
-          #{v} = #{v}();
+          #{v} = #{v}.call(stack[stack.length - 1]);
         }
         out.push(#{v});
       JS
@@ -244,7 +244,7 @@ class Mustache
       <<-JS.gsub(/^        /, indent)
         #{v} = fetch(#{name.inspect});
         if (isFunction(#{v})) {
-          #{v} = #{v}();
+          #{v} = #{v}.call(stack[stack.length - 1]);
         }
         out.push(escape(#{v}));
       JS
