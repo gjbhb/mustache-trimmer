@@ -24,6 +24,15 @@ tests:
     template: "<{{lambda}}{{{lambda}}}"
     expected: "<&gt;>"
 
+  - name: This
+    desc: Lambda should be applied with context
+    data:
+      foo: !code
+        js: 'function() { return this.bar }'
+      bar: "world"
+    template: "Hello, {{foo}}!"
+    expected: "Hello, world!"
+
   - name: Section
     desc: Lambdas used for sections should receive the section block.
     data:
