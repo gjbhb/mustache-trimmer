@@ -152,27 +152,29 @@ class Mustache
       code = compile!(content)
 
       <<-JS.gsub(/^        /, indent)
-        #{f} = function #{f}() {
-          var out = [];
+        #{f} = function #{f}(out) {
 #{code.gsub(/^/, '          ')}
-          return out.join("");
         };
         #{v} = fetch(#{name.inspect});
         if (!isEmpty(#{v})) {
           if (isFunction(#{v})) {
-            out.push(#{v}.call(stack[stack.length - 1], #{f}));
+            out.push(#{v}.call(stack[stack.length - 1], function () {
+              var out = [];
+              #{f}(out);
+              return out.join("");
+            }));
           } else if (isArray(#{v})) {
             for (#{i} = 0; #{i} < #{v}.length; #{i} += 1) {
               stack.push(#{v}[#{i}]);
-              out.push(#{f}());
+              #{f}(out);
               stack.pop();
             }
           } else if (isObject(#{v})) {
             stack.push(#{v});
-            out.push(#{f}());
+            #{f}(out);
             stack.pop();
           } else {
-            out.push(#{f}());
+            #{f}(out);
           }
         }
       JS
@@ -186,14 +188,12 @@ class Mustache
       code = compile!(content)
 
       <<-JS.gsub(/^        /, indent)
-        #{f} = function #{f}() {
-          var out = [];
+        #{f} = function #{f}(out) {
 #{code.gsub(/^/, '          ')}
-          return out.join("");
         };
         #{v} = fetch(#{name.inspect});
         if (isEmpty(#{v})) {
-          out.push(#{f}());
+          #{f}(out);
         }
       JS
     end
