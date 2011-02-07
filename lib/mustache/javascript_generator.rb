@@ -56,6 +56,8 @@ class Mustache
               return true;
             } else if (obj === true) {
               return false;
+            } else if (obj === 0) {
+              return true;
             } else if (isArray(obj)) {
               return obj.length === 0;
             } else if (isFunction(obj)) {
