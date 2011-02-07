@@ -46,7 +46,7 @@ class Mustache
       end
 
       if @helpers[:isEmpty]
-        @helpers[:isArray] = @helpers[:isFunction] = @helpers[:isObject] = true
+        @helpers[:isArray] = @helpers[:isObject] = true
         local :isEmpty
         out << <<-JS.gsub(/^          /, indent)
           isEmpty = function isEmpty(obj) {
@@ -54,14 +54,8 @@ class Mustache
 
             if (!obj) {
               return true;
-            } else if (obj === true) {
-              return false;
-            } else if (obj === 0) {
-              return true;
             } else if (isArray(obj)) {
               return obj.length === 0;
-            } else if (isFunction(obj)) {
-              return false;
             } else if (isObject(obj)) {
               for (key in obj) {
                 if (obj.hasOwnProperty(key)) {
@@ -151,7 +145,7 @@ class Mustache
     end
 
     def on_section(name, content, raw, indent)
-      @helpers[:fetch] = true
+      @helpers[:fetch] = @helpers[:isEmpty] = true
       @helpers[:isObject] = @helpers[:isArray] = @helpers[:isFunction] = true
 
       f, v, i = local, local, local
@@ -164,20 +158,22 @@ class Mustache
           return out.join("");
         };
         #{v} = fetch(#{name.inspect});
-        if (#{v} === true) {
-          out.push(#{f}());
-        } else if (isFunction(#{v})) {
-          out.push(#{v}.call(stack[stack.length - 1], #{f}));
-        } else if (isArray(#{v})) {
-          for (#{i} = 0; #{i} < #{v}.length; #{i} += 1) {
-            stack.push(#{v}[#{i}]);
+        if (!isEmpty(#{v})) {
+          if (isFunction(#{v})) {
+            out.push(#{v}.call(stack[stack.length - 1], #{f}));
+          } else if (isArray(#{v})) {
+            for (#{i} = 0; #{i} < #{v}.length; #{i} += 1) {
+              stack.push(#{v}[#{i}]);
+              out.push(#{f}());
+              stack.pop();
+            }
+          } else if (isObject(#{v})) {
+            stack.push(#{v});
             out.push(#{f}());
             stack.pop();
+          } else {
+            out.push(#{f}());
           }
-        } else if (isObject(#{v})) {
-          stack.push(#{v});
-          out.push(#{f}());
-          stack.pop();
         }
       JS
     end

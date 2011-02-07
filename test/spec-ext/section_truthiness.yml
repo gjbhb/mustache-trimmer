@@ -1,0 +1,144 @@
+tests:
+  - name: Section - true
+    desc: Truthy sections should have their contents rendered.
+    data: { boolean: true }
+    template: '"{{#boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Invert - true
+    desc: Truthy sections should have their contents omitted.
+    data: { boolean: true }
+    template: '"{{^boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Section - 1
+    desc: Truthy sections should have their contents rendered.
+    data: { boolean: 1 }
+    template: '"{{#boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Invert - 1
+    desc: Truthy sections should have their contents omitted.
+    data: { boolean: 1 }
+    template: '"{{^boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Section - "foo"
+    desc: Truthy sections should have their contents rendered.
+    data: { boolean: "foo" }
+    template: '"{{#boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Invert - "foo"
+    desc: Truthy sections should have their contents omitted.
+    data: { boolean: "foo" }
+    template: '"{{^boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Section - { foo "bar" }
+    desc: Truthy sections should have their contents rendered.
+    data: { boolean: { foo: "bar" } }
+    template: '"{{#boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Invert - { foo "bar" }
+    desc: Truthy sections should have their contents omitted.
+    data: { boolean: { foo: "bar" } }
+    template: '"{{^boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Section - [0]
+    desc: Truthy sections should have their contents rendered.
+    data: { boolean: [0] }
+    template: '"{{#boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Invert - [0]
+    desc: Truthy sections should have their contents omitted.
+    data: { boolean: [0] }
+    template: '"{{^boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Section - false
+    desc: Falsey sections should have their contents omitted.
+    data: { boolean: false }
+    template: '"{{#boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Invert - false
+    desc: Falsey sections should have their contents rendered.
+    data: { boolean: false }
+    template: '"{{^boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Section - null
+    desc: Falsey sections should have their contents omitted.
+    data: { boolean: null }
+    template: '"{{#boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Invert - null
+    desc: Falsey sections should have their contents rendered.
+    data: { boolean: null }
+    template: '"{{^boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Section - undefined
+    desc: Falsey sections should have their contents omitted.
+    data: {}
+    template: '"{{#boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Invert - undefined
+    desc: Falsey sections should have their contents rendered.
+    data: {}
+    template: '"{{^boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Section - 0
+    desc: Falsey sections should have their contents omitted.
+    data: { boolean: 0 }
+    template: '"{{#boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Invert - 0
+    desc: Falsey sections should have their contents rendered.
+    data: { boolean: 0 }
+    template: '"{{^boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Section - ""
+    desc: Falsey sections should have their contents omitted.
+    data: { boolean: "" }
+    template: '"{{#boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Invert - ""
+    desc: Falsey sections should have their contents rendered.
+    data: { boolean: "" }
+    template: '"{{^boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Section - {}
+    desc: Falsey sections should have their contents omitted.
+    data: { boolean: {} }
+    template: '"{{#boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Invert - {}
+    desc: Falsey sections should have their contents rendered.
+    data: { boolean: {} }
+    template: '"{{^boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
+
+  - name: Section - []
+    desc: Falsey sections should have their contents omitted.
+    data: { boolean: [] }
+    template: '"{{#boolean}}This should not be rendered.{{/boolean}}"'
+    expected: '""'
+
+  - name: Invert - []
+    desc: Falsey sections should have their contents rendered.
+    data: { boolean: [] }
+    template: '"{{^boolean}}This should be rendered.{{/boolean}}"'
+    expected: '"This should be rendered."'
