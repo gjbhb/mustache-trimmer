@@ -46,7 +46,7 @@ class Mustache
       end
 
       if @helpers[:isEmpty]
-        @helpers[:isArray] = @helpers[:isFunction] = true
+        @helpers[:isArray] = @helpers[:isFunction] = @helpers[:isObject] = true
         local :isEmpty
         out << <<-JS.gsub(/^          /, indent)
           isEmpty = function isEmpty(obj) {
@@ -60,13 +60,15 @@ class Mustache
               return obj.length === 0;
             } else if (isFunction(obj)) {
               return false;
-            } else {
+            } else if (isObject(obj)) {
               for (key in obj) {
                 if (obj.hasOwnProperty(key)) {
                   return false;
                 }
               }
               return true;
+            } else {
+              return false;
             }
           };
         JS
