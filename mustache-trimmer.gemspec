@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name      = 'mustache-trimmer'
-  s.version   = '0.1.2'
+  s.version   = '0.1.3'
   s.date      = '2011-02-07'
 
   s.homepage    = "https://github.com/josh/mustache-trimmer"
