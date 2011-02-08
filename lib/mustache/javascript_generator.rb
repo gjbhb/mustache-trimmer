@@ -99,9 +99,9 @@ class Mustache
       out
     end
 
-    def locals
+    def locals(indent = "")
       if @locals.last.any?
-        "var #{@locals.last.join(', ')};\n"
+        "#{indent}var #{@locals.last.join(', ')};\n"
       else
         ""
       end
@@ -152,7 +152,7 @@ class Mustache
       f, v, i = local, local, local
 
       <<-JS.gsub(/^        /, indent)
-        #{f} = #{closure(f, content, indent).chomp}
+        #{f} = #{closure(f, content, indent+'  ').chomp.sub(/^\s+/, '')}
         #{v} = fetch(#{name.inspect});
         if (!isEmpty(#{v})) {
           if (isFunction(#{v})) {
@@ -185,7 +185,7 @@ class Mustache
       f, v = local, local
 
       <<-JS.gsub(/^        /, indent)
-        #{f} = #{closure(f, content, indent).chomp}
+        #{f} = #{closure(f, content, indent+'  ').chomp.sub(/^\s+/, '')}
         #{v} = fetch(#{name.inspect});
         if (isEmpty(#{v})) {
           #{f}(out);
@@ -239,13 +239,12 @@ class Mustache
     def closure(name, tokens, indent)
       @locals.push([])
       code = compile!(tokens)
-      locals = self.locals
+      locals = self.locals('          ')
       @locals.pop
 
       <<-JS.gsub(/^        /, indent)
-function #{name}(out) {
-          #{locals.chomp}
-#{code.gsub(/^/, '          ').chomp}
+        function #{name}(out) {
+#{locals}#{code.gsub(/^/, '          ').chomp}
         };
       JS
     end
