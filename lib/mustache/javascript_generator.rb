@@ -6,7 +6,6 @@ class Mustache
       @n = 0
       @locals = []
       @helpers = {}
-      @indentation = ""
       @partials = {}
       @partial_calls = {}
     end
@@ -202,13 +201,9 @@ class Mustache
       unless js = @partial_calls[name]
         js = @partial_calls[name] = "#{name}();\n"
 
-        old_indentation, @indentation = @indentation, indentation
-
-        source   = Mustache.partial(name)
+        source   = Mustache.partial(name).to_s.gsub(/^/, indentation)
         template = Mustache.templateify(source)
         body     = compile!(template.tokens)
-
-        @indentation = old_indentation
 
         @partials[name] = <<-JS.gsub(/^          /, indent)
           function #{name}(obj) {
@@ -251,7 +246,6 @@ class Mustache
     end
 
     def str(s, indent)
-      s = s.gsub(/^/, @indentation) if !@indentation.empty?
       "#{indent}out.push(#{s.inspect});\n"
     end
 
