@@ -199,14 +199,14 @@ class Mustache
 
     def on_partial(name, indentation, indent)
       unless js = @partial_calls[name]
-        js = @partial_calls[name] = "#{name}();\n"
+        js = @partial_calls[name] = "#{name}(out);\n"
 
         source   = Mustache.partial(name).to_s.gsub(/^/, indentation)
         template = Mustache.templateify(source)
         body     = compile!(template.tokens)
 
         @partials[name] = <<-JS.gsub(/^          /, indent)
-          function #{name}(obj) {
+          function #{name}(out) {
 #{body.gsub(/^/, '            ')}
           }
         JS
