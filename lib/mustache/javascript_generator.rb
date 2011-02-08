@@ -4,7 +4,7 @@ class Mustache
   class JavascriptGenerator
     def initialize
       @n = 0
-      @locals = []
+      @locals = [[]]
       @helpers = {}
       @partials = {}
       @partial_calls = {}
@@ -99,12 +99,16 @@ class Mustache
       out
     end
 
-    def locals(indent)
-      "#{indent}var #{@locals.join(', ')};\n"
+    def locals
+      if @locals.last.any?
+        "var #{@locals.last.join(', ')};\n"
+      else
+        ""
+      end
     end
 
     def partials(indent)
-      @partials.values.join("\n  ")
+      indent + @partials.values.join("\n#{indent}")
     end
 
     def compile(exp, indent = '')
@@ -114,14 +118,14 @@ class Mustache
 
       helpers = self.helpers(indent+'  ')
       partials = self.partials(indent+'  ')
-      locals = self.locals(indent+'  ')
+      locals = indent + '  ' + self.locals
 
       js = ""
       js << indent << "function (obj) {\n"
       js << locals
       js << indent << "  out = [];\n"
       js << helpers
-      js << partials
+      js << partials << "\n"
       js << body
       js << indent << "  return out.join(\"\");\n"
       js << indent << "}"
@@ -135,9 +139,7 @@ class Mustache
       when :static
         str(exp[1], indent)
       when :mustache
-        args = exp[2..-1]
-        args.push(indent)
-        send("on_#{exp[1]}", *args)
+        send("on_#{exp[1]}", *(exp[2..-1] + [indent]))
       else
         raise "Unhandled exp: #{exp.first}"
       end
@@ -148,12 +150,9 @@ class Mustache
       @helpers[:isObject] = @helpers[:isArray] = @helpers[:isFunction] = true
 
       f, v, i = local, local, local
-      code = compile!(content)
 
       <<-JS.gsub(/^        /, indent)
-        #{f} = function #{f}(out) {
-#{code.gsub(/^/, '          ')}
-        };
+        #{f} = #{closure(f, content, indent).chomp}
         #{v} = fetch(#{name.inspect});
         if (!isEmpty(#{v})) {
           if (isFunction(#{v})) {
@@ -184,12 +183,9 @@ class Mustache
       @helpers[:fetch] = true
 
       f, v = local, local
-      code = compile!(content)
 
       <<-JS.gsub(/^        /, indent)
-        #{f} = function #{f}(out) {
-#{code.gsub(/^/, '          ')}
-        };
+        #{f} = #{closure(f, content, indent).chomp}
         #{v} = fetch(#{name.inspect});
         if (isEmpty(#{v})) {
           #{f}(out);
@@ -203,13 +199,8 @@ class Mustache
 
         source   = Mustache.partial(name).to_s.gsub(/^/, indentation)
         template = Mustache.templateify(source)
-        body     = compile!(template.tokens)
 
-        @partials[name] = <<-JS.gsub(/^          /, indent)
-          function #{name}(out) {
-#{body.gsub(/^/, '            ')}
-          }
-        JS
+        @partials[name] = closure(name, template.tokens, indent).chomp
       end
 
       "#{indent}#{js}"
@@ -245,17 +236,31 @@ class Mustache
       JS
     end
 
+    def closure(name, tokens, indent)
+      @locals.push([])
+      code = compile!(tokens)
+      locals = self.locals
+      @locals.pop
+
+      <<-JS.gsub(/^        /, indent)
+function #{name}(out) {
+          #{locals.chomp}
+#{code.gsub(/^/, '          ').chomp}
+        };
+      JS
+    end
+
     def str(s, indent)
       "#{indent}out.push(#{s.inspect});\n"
     end
 
     def local(name = nil)
       if name
-        @locals << name.to_sym
+        @locals.last << name.to_sym
       else
         @n += 1
         name = :"l#{@n}"
-        @locals << name
+        @locals.last << name
         name
       end
     end
