@@ -68,9 +68,9 @@ end
 path = File.expand_path("../**/*.yml", __FILE__)
 Dir[path].each do |file|
   spec = YAML.load_file(file)
-  name = File.basename(file, '.yml').sub(/^./, &:upcase)
+  name = File.basename(file, '.yml').gsub(/-|~/, "").capitalize
 
-  next if name == '~lambdas'
+  next if name == 'Lambdas'
 
   klass_name = "Test#{name}"
   instance_eval "class ::#{klass_name} < TestSpec; end"

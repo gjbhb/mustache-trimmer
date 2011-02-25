@@ -96,6 +96,26 @@ class Mustache
         JS
       end
 
+      if @helpers[:reduce]
+        local :reduce
+        out << <<-JS.gsub(/^          /, indent)
+          reduce = Array.prototype.reduce || function reduce(iterator, memo) {
+            var i;
+            for (i = 0; i < this.length; i++) {
+              memo = iterator(memo, this[i]);
+            }
+            return memo;
+          };
+        JS
+
+        local :traverse
+        out << <<-JS.gsub(/^          /, indent)
+          traverse = function traverse(value, key) {
+            return value && value[key];
+          };
+        JS
+      end
+
       out
     end
 
@@ -153,7 +173,7 @@ class Mustache
 
       <<-JS.gsub(/^        /, indent)
         #{f} = #{closure(f, content, indent+'  ').chomp.sub(/^\s+/, '')}
-        #{v} = fetch(#{name.inspect});
+        #{v} = #{compile!(name)};
         if (!isEmpty(#{v})) {
           if (isFunction(#{v})) {
             out.push(#{v}.call(stack[stack.length - 1], function () {
@@ -186,7 +206,7 @@ class Mustache
 
       <<-JS.gsub(/^        /, indent)
         #{f} = #{closure(f, content, indent+'  ').chomp.sub(/^\s+/, '')}
-        #{v} = fetch(#{name.inspect});
+        #{v} = #{compile!(name)};
         if (isEmpty(#{v})) {
           #{f}(out);
         }
@@ -209,31 +229,54 @@ class Mustache
     def on_utag(name, indent)
       @helpers[:fetch] = true
       @helpers[:isFunction] = true
+      @helpers[:isEmpty] = true
 
       v = local
 
       <<-JS.gsub(/^        /, indent)
-        #{v} = fetch(#{name.inspect});
+        #{v} = #{compile!(name)};
         if (isFunction(#{v})) {
           #{v} = #{v}.call(stack[stack.length - 1]);
         }
-        out.push(#{v});
+        if (!isEmpty(#{v})) {
+          out.push(#{v});
+        }
       JS
     end
 
     def on_etag(name, indent)
-      @helpers[:fetch] = @helpers[:escape] = true
+      @helpers[:fetch] = true
       @helpers[:isFunction] = true
+      @helpers[:isEmpty] = @helpers[:escape] = true
 
       v = local
 
       <<-JS.gsub(/^        /, indent)
-        #{v} = fetch(#{name.inspect});
+        #{v} = #{compile!(name)};
         if (isFunction(#{v})) {
           #{v} = #{v}.call(stack[stack.length - 1]);
         }
-        out.push(escape(#{v}));
+        if (!isEmpty(#{v})) {
+          out.push(escape(#{v}));
+        }
       JS
+    end
+
+    def on_fetch(names, indent)
+      @helpers[:fetch] = true
+
+      names = names.map { |n| n.to_s }
+
+      case names.length
+      when 0
+        "stack[stack.length-1]"
+      when 1
+        "fetch(#{names.first.inspect})"
+      else
+        @helpers[:reduce] = true
+        initial, *rest = names
+        "reduce.call(#{rest.inspect}, traverse, fetch(#{initial.inspect}))"
+      end
     end
 
     def closure(name, tokens, indent)

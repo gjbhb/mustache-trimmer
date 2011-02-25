@@ -20,40 +20,46 @@ class TestGenerator < Test::Unit::TestCase
       };
     JS
 
-    assert_equal <<-JS, generator.closure("greeting", [:mustache, :utag, "Hello"], "      ")
+    assert_equal <<-JS, generator.closure("greeting", [:mustache, :utag, [:mustache, :fetch, ["Hello"]]], "      ")
       function greeting(out) {
         var l1;
         l1 = fetch("Hello");
         if (isFunction(l1)) {
           l1 = l1.call(stack[stack.length - 1]);
         }
-        out.push(l1);
+        if (!isEmpty(l1)) {
+          out.push(l1);
+        }
       };
     JS
   end
 
   def test_on_utag
-    assert_equal <<-JS, generator.on_utag("name", "      ")
+    assert_equal <<-JS, generator.on_utag([:mustache, :fetch, ["name"]], "      ")
       l1 = fetch("name");
       if (isFunction(l1)) {
         l1 = l1.call(stack[stack.length - 1]);
       }
-      out.push(l1);
+      if (!isEmpty(l1)) {
+        out.push(l1);
+      }
     JS
   end
 
   def test_on_etag
-    assert_equal <<-JS, generator.on_etag("name", "      ")
+    assert_equal <<-JS, generator.on_etag([:mustache, :fetch, ["name"]], "      ")
       l1 = fetch("name");
       if (isFunction(l1)) {
         l1 = l1.call(stack[stack.length - 1]);
       }
-      out.push(escape(l1));
+      if (!isEmpty(l1)) {
+        out.push(escape(l1));
+      }
     JS
   end
 
   def test_on_inverted_section
-    assert_equal <<-JS, generator.on_inverted_section("name", [:static, "Hello"], nil, "      ")
+    assert_equal <<-JS, generator.on_inverted_section([:mustache, :fetch, ["name"]], [:static, "Hello"], nil, "      ")
       l1 = function l1(out) {
         out.push("Hello");
       };
@@ -65,7 +71,7 @@ class TestGenerator < Test::Unit::TestCase
   end
 
   def test_on_section
-    assert_equal <<-JS, generator.on_section("name", [:static, "Hello"], nil, "      ")
+    assert_equal <<-JS, generator.on_section([:mustache, :fetch, ["name"]], [:static, "Hello"], nil, "      ")
       l1 = function l1(out) {
         out.push("Hello");
       };
