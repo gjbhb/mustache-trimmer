@@ -10,13 +10,13 @@ class Mustache
       @partial_calls = {}
     end
 
-    def helpers(indent)
+    def helpers
       out = ""
 
       if @helpers[:fetch]
         local :stack
         local :fetch
-        out << <<-JS.gsub(/^          /, indent)
+        out << <<-JS
           stack = [];
           stack.push(obj);
           fetch = function fetch(key) {
@@ -33,7 +33,7 @@ class Mustache
 
       if @helpers[:escape]
         local :escape
-        out << <<-JS.gsub(/^          /, indent)
+        out << <<-JS
           escape = function escape(value) {
             return ('' + value)
               .replace(/&/g, '&amp;')
@@ -47,7 +47,7 @@ class Mustache
       if @helpers[:isEmpty]
         @helpers[:isArray] = @helpers[:isObject] = true
         local :isEmpty
-        out << <<-JS.gsub(/^          /, indent)
+        out << <<-JS
           isEmpty = function isEmpty(obj) {
             var key;
 
@@ -71,7 +71,7 @@ class Mustache
 
       if @helpers[:isArray]
         local :isArray
-        out << <<-JS.gsub(/^          /, indent)
+        out << <<-JS
           isArray = Array.isArray || function isArray(obj) {
             return Object.prototype.toString.call(obj) === '[object Array]';
           };
@@ -80,7 +80,7 @@ class Mustache
 
       if @helpers[:isObject]
         local :isObject
-        out << <<-JS.gsub(/^          /, indent)
+        out << <<-JS
           isObject = function isObject(obj) {
             return (obj && typeof obj === 'object');
           };
@@ -89,7 +89,7 @@ class Mustache
 
       if @helpers[:isFunction]
         local :isFunction
-        out << <<-JS.gsub(/^          /, indent)
+        out << <<-JS
           isFunction = function isFunction(obj) {
             return !!(obj && obj.constructor && obj.call && obj.apply);
           };
@@ -98,7 +98,7 @@ class Mustache
 
       if @helpers[:reduce]
         local :reduce
-        out << <<-JS.gsub(/^          /, indent)
+        out << <<-JS
           reduce = Array.prototype.reduce || function reduce(iterator, memo) {
             var i;
             for (i = 0; i < this.length; i++) {
@@ -109,7 +109,7 @@ class Mustache
         JS
 
         local :traverse
-        out << <<-JS.gsub(/^          /, indent)
+        out << <<-JS
           traverse = function traverse(value, key) {
             return value && value[key];
           };
@@ -119,60 +119,58 @@ class Mustache
       out
     end
 
-    def locals(indent = "")
+    def locals
       if @locals.last.any?
-        "#{indent}var #{@locals.last.join(', ')};\n"
-      else
-        ""
+        "var #{@locals.last.join(', ')};\n"
       end
     end
 
-    def partials(indent)
-      indent + @partials.values.join("\n#{indent}")
+    def partials
+      @partials.values.join("\n")
     end
 
-    def compile(exp, indent = '')
+    def compile(exp)
       local :out
 
-      body = compile!(exp, indent+'  ')
+      body = compile!(exp)
 
-      helpers = self.helpers(indent+'  ')
-      partials = self.partials(indent+'  ')
-      locals = indent + '  ' + self.locals
+      helpers = self.helpers
+      partials = self.partials
+      locals = self.locals
 
-      js = ""
-      js << indent << "function (obj) {\n"
-      js << locals
-      js << indent << "  out = [];\n"
-      js << helpers
-      js << partials << "\n"
-      js << body
-      js << indent << "  return out.join(\"\");\n"
-      js << indent << "}"
-      js
+      <<-JS
+        function (obj) {
+          #{locals}
+          out = [];
+          #{helpers}
+          #{partials}
+          #{body}
+          return out.join("");
+        }
+      JS
     end
 
-    def compile!(exp, indent = '')
+    def compile!(exp)
       case exp.first
       when :multi
-        exp[1..-1].map { |e| compile!(e, indent) }.join
+        exp[1..-1].map { |e| compile!(e) }.join
       when :static
-        str(exp[1], indent)
+        str(exp[1])
       when :mustache
-        send("on_#{exp[1]}", *(exp[2..-1] + [indent]))
+        send("on_#{exp[1]}", *exp[2..-1])
       else
         raise "Unhandled exp: #{exp.first}"
       end
     end
 
-    def on_section(name, content, raw, indent)
+    def on_section(name, content, raw)
       @helpers[:fetch] = @helpers[:isEmpty] = true
       @helpers[:isObject] = @helpers[:isArray] = @helpers[:isFunction] = true
 
       f, v, i = local, local, local
 
-      <<-JS.gsub(/^        /, indent)
-        #{f} = #{closure(f, content, indent+'  ').chomp.sub(/^\s+/, '')}
+      <<-JS
+        #{f} = #{closure(f, content)}
         #{v} = #{compile!(name)};
         if (!isEmpty(#{v})) {
           if (isFunction(#{v})) {
@@ -198,14 +196,14 @@ class Mustache
       JS
     end
 
-    def on_inverted_section(name, content, raw, indent)
+    def on_inverted_section(name, content, raw)
       @helpers[:isEmpty] = true
       @helpers[:fetch] = true
 
       f, v = local, local
 
-      <<-JS.gsub(/^        /, indent)
-        #{f} = #{closure(f, content, indent+'  ').chomp.sub(/^\s+/, '')}
+      <<-JS
+        #{f} = #{closure(f, content)}
         #{v} = #{compile!(name)};
         if (isEmpty(#{v})) {
           #{f}(out);
@@ -213,27 +211,27 @@ class Mustache
       JS
     end
 
-    def on_partial(name, indentation, indent)
+    def on_partial(name, indentation)
       unless js = @partial_calls[name]
         js = @partial_calls[name] = "#{name}(out);\n"
 
         source   = Mustache.partial(name).to_s.gsub(/^/, indentation)
         template = Mustache.templateify(source)
 
-        @partials[name] = closure(name, template.tokens, indent).chomp
+        @partials[name] = closure(name, template.tokens).chomp
       end
 
-      "#{indent}#{js}"
+      js
     end
 
-    def on_utag(name, indent)
+    def on_utag(name)
       @helpers[:fetch] = true
       @helpers[:isFunction] = true
       @helpers[:isEmpty] = true
 
       v = local
 
-      <<-JS.gsub(/^        /, indent)
+      <<-JS
         #{v} = #{compile!(name)};
         if (isFunction(#{v})) {
           #{v} = #{v}.call(stack[stack.length - 1]);
@@ -244,14 +242,14 @@ class Mustache
       JS
     end
 
-    def on_etag(name, indent)
+    def on_etag(name)
       @helpers[:fetch] = true
       @helpers[:isFunction] = true
       @helpers[:isEmpty] = @helpers[:escape] = true
 
       v = local
 
-      <<-JS.gsub(/^        /, indent)
+      <<-JS
         #{v} = #{compile!(name)};
         if (isFunction(#{v})) {
           #{v} = #{v}.call(stack[stack.length - 1]);
@@ -262,7 +260,7 @@ class Mustache
       JS
     end
 
-    def on_fetch(names, indent)
+    def on_fetch(names)
       @helpers[:fetch] = true
 
       names = names.map { |n| n.to_s }
@@ -279,21 +277,22 @@ class Mustache
       end
     end
 
-    def closure(name, tokens, indent)
+    def closure(name, tokens)
       @locals.push([])
       code = compile!(tokens)
-      locals = self.locals('          ')
+      locals = self.locals
       @locals.pop
 
-      <<-JS.gsub(/^        /, indent)
+      <<-JS
         function #{name}(out) {
-#{locals}#{code.gsub(/^/, '          ').chomp}
+          #{locals}
+          #{code}
         };
       JS
     end
 
-    def str(s, indent)
-      "#{indent}out.push(#{s.inspect});\n"
+    def str(s)
+      "out.push(#{s.inspect});\n"
     end
 
     def local(name = nil)
