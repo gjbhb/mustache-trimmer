@@ -138,7 +138,7 @@ class Mustache
       partials = self.partials
       locals = self.locals
 
-      <<-JS
+      <<-JS.strip
         function (obj) {
           #{locals}
           out = [];
@@ -170,8 +170,8 @@ class Mustache
       f, v, i = local, local, local
 
       <<-JS
-        #{f} = #{closure(f, content)}
-        #{v} = #{compile!(name)};
+        #{f} = #{closure(f, content).strip}
+        #{v} = #{compile!(name).strip};
         if (!isEmpty(#{v})) {
           if (isFunction(#{v})) {
             out.push(#{v}.call(stack[stack.length - 1], function () {
@@ -203,8 +203,8 @@ class Mustache
       f, v = local, local
 
       <<-JS
-        #{f} = #{closure(f, content)}
-        #{v} = #{compile!(name)};
+        #{f} = #{closure(f, content).strip}
+        #{v} = #{compile!(name).strip};
         if (isEmpty(#{v})) {
           #{f}(out);
         }
@@ -232,7 +232,7 @@ class Mustache
       v = local
 
       <<-JS
-        #{v} = #{compile!(name)};
+        #{v} = #{compile!(name).strip};
         if (isFunction(#{v})) {
           #{v} = #{v}.call(stack[stack.length - 1]);
         }
@@ -250,7 +250,7 @@ class Mustache
       v = local
 
       <<-JS
-        #{v} = #{compile!(name)};
+        #{v} = #{compile!(name).strip};
         if (isFunction(#{v})) {
           #{v} = #{v}.call(stack[stack.length - 1]);
         }
