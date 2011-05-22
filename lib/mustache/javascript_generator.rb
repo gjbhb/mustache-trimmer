@@ -113,7 +113,7 @@ class Mustache
         JS
       end
 
-      out
+      out.gsub("          ", "")
     end
 
     def globals
@@ -144,7 +144,7 @@ class Mustache
 
       helpers = self.helpers
 
-      <<-JS.strip
+      <<-JS.gsub("        ", "")
         (function() {
           #{globals.strip}
           #{helpers.strip}
@@ -247,8 +247,8 @@ class Mustache
 
       @partials[name] = <<-JS
         #{name} = function #{name}(stack, out) {
-          #{locals}
-          #{code}
+          #{locals.strip}
+          #{code.strip}
         };
       JS
 
