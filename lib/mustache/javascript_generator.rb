@@ -181,7 +181,7 @@ class Mustache
       @helpers[:isEmpty] = true
       @helpers[:isObject] = @helpers[:isArray] = @helpers[:isFunction] = true
 
-      f, v, i = global, local, local
+      f, v, i = global, local(:v), local(:i)
 
       compile_closure!(f, content)
 
@@ -214,7 +214,7 @@ class Mustache
     def on_inverted_section(name, content, raw)
       @helpers[:isEmpty] = true
 
-      f, v = global, local
+      f, v = global, local(:v)
 
       compile_closure!(f, content)
 
@@ -259,7 +259,7 @@ class Mustache
       @helpers[:isFunction] = true
       @helpers[:isEmpty] = true
 
-      v = local
+      v = local(:v)
 
       <<-JS
         #{v} = #{compile!(name).strip};
@@ -276,7 +276,7 @@ class Mustache
       @helpers[:isFunction] = true
       @helpers[:isEmpty] = @helpers[:escape] = true
 
-      v = local
+      v = local(:v)
 
       <<-JS
         #{v} = #{compile!(name).strip};
@@ -324,16 +324,8 @@ class Mustache
 
     def local(name = nil)
       raise "not in closure" unless @locals.last
-
-      if name
-        @locals.last << name.to_sym
-        name
-      else
-        @n += 1
-        name = :"l#{@n}"
-        @locals.last << name
-        name
-      end
+      @locals.last << name.to_sym
+      name
     end
   end
 end
