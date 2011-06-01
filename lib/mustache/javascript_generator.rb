@@ -177,7 +177,7 @@ class Mustache
       end
     end
 
-    def on_section(name, content, raw)
+    def on_section(name, content, raw, delims)
       @helpers[:isEmpty] = true
       @helpers[:isObject] = @helpers[:isArray] = @helpers[:isFunction] = true
 
@@ -211,7 +211,7 @@ class Mustache
       JS
     end
 
-    def on_inverted_section(name, content, raw)
+    def on_inverted_section(name, content, raw, _)
       @helpers[:isEmpty] = true
 
       f, v = global, local(:v)
